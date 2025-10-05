@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ domain }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    .stat-card {
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .stat-value { font-size: 32px; font-weight: bold; margin: 10px 0; }
+    .stat-label { font-size: 14px; opacity: 0.9; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+    table th, table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    table th {
+        background: #f8f9fa;
+        font-weight: bold;
+    }
+    .log-level-INFO { color: #3498db; }
+    .log-level-ERROR { color: #e74c3c; }
+    .log-level-WARNING { color: #f39c12; }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin: 10px 5px 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>📊 Dashboard</h1>
+<p><strong>Domain:</strong> {{ domain }}</p>
+
+<a href="{{ url_for('index') }}" class="btn">← Back to Home</a>
+
+<h2>Statistics</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Pages</div>
+        <div class="stat-value">{{ stats[2] if stats and stats|length > 2 else 0 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Assets</div>
+        <div class="stat-value">{{ stats[3] if stats and stats|length > 3 else 0 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" style="font-size: 20px;">{{ (stats[4] if stats and stats|length > 4 else 'N/A') | upper }}</div>
+    </div>
+</div>
+
+{% if stats and stats|length > 5 and stats[5] %}
+<p><strong>Started:</strong> {{ stats[5] }}</p>
+{% endif %}
+{% if stats and stats|length > 6 and stats[6] %}
+<p><strong>Completed:</strong> {{ stats[6] }}</p>
+{% endif %}
+
+<h2>Recent Logs</h2>
+{% if logs %}
+<table>
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Level</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log[0] }}</td>
+            <td class="log-level-{{ log[1] }}"><strong>{{ log[1] }}</strong></td>
+            <td>{{ log[2] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No logs available for this domain.</p>
+{% endif %}
+{% endblock %}

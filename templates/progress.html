@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Crawl Progress{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <h1>Crawling: {{ domain }}</h1>
+
+    <div style="margin: 30px 0;">
+        <div style="background: #f5f5f5; border-radius: 10px; padding: 3px;">
+            <div id="progressBar" style="
+                width: 0%;
+                height: 30px;
+                background: linear-gradient(90deg, #4CAF50, #45a049);
+                border-radius: 8px;
+                transition: width 0.5s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+            ">
+                <span id="progressText">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+        <p id="statusText" style="font-size: 18px; color: #666;">Initializing...</p>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="/dashboard?domain={{ domain }}" style="
+            display: inline-block;
+            padding: 12px 30px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        ">View Dashboard</a>
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+        <h3>Progress Log</h3>
+        <div id="logContainer" style="
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        "></div>
+    </div>
+</div>
+
+<script>
+    const domain = "{{ domain }}";
+    let progressInterval;
+    let logMessages = [];
+
+    function updateProgress() {
+        fetch(`/get_progress?domain=${encodeURIComponent(domain)}`)
+            .then(response => response.json())
+            .then(data => {
+                const progress = Math.min(data.progress || 0, 100);
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                const statusText = document.getElementById('statusText');
+
+                progressBar.style.width = progress + '%';
+                progressText.textContent = progress.toFixed(1) + '%';
+
+                if (progress >= 100) {
+                    statusText.textContent = 'Crawl completed!';
+                    statusText.style.color = '#4CAF50';
+                    clearInterval(progressInterval);
+                    addLog('Crawl completed successfully');
+                } else if (progress > 0) {
+                    statusText.textContent = 'Crawling in progress...';
+                    statusText.style.color = '#007bff';
+                } else {
+                    statusText.textContent = 'Starting crawl...';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching progress:', error);
+                addLog('Error: ' + error.message);
+            });
+    }
+
+    function addLog(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        logMessages.unshift(`[${timestamp}] ${message}`);
+
+        // Keep only last 50 messages
+        if (logMessages.length > 50) {
+            logMessages = logMessages.slice(0, 50);
+        }
+
+        const logContainer = document.getElementById('logContainer');
+        logContainer.innerHTML = logMessages.join('<br>');
+    }
+
+    // Start progress updates
+    addLog('Progress tracking started');
+    updateProgress();
+    progressInterval = setInterval(updateProgress, 2000);
+
+    // Stop updates when page is closed
+    window.addEventListener('beforeunload', () => {
+        clearInterval(progressInterval);
+    });
+</script>
+{% endblock %}
