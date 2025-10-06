@@ -4,12 +4,14 @@ from config import Config
 
 logger = logging.getLogger(__name__)
 
+
 class ProgressTracker:
     def __init__(self, domain, total=100):
         if not domain:
             raise ValueError("Domain must be provided")
 
         self.domain = domain
+
         try:
             self.redis = redis.from_url(Config.REDIS_URL, decode_responses=True)
             # Test connection

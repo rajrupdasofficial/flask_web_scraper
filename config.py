@@ -1,26 +1,31 @@
 import os
-import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
-
 class Config:
-    DB_HOST = os.getenv('DB_HOST')
-    DB_PORT = os.getenv('DB_PORT')
-    DB_NAME = os.getenv('DB_NAME')
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
-    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
-    CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
-    CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
-    CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
-    REDIS_URL = os.getenv('CELERY_BROKER_URL')  # Reuse for progress
+    # Database configuration
+    DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://user:password@localhost:5432/crawler_db')
 
+    # Redis configuration (still used for progress tracking)
+    REDIS_URL = os.getenv('REDIS_URI', 'redis://localhost:6379/0')
+
+    # Connection pool settings
+    DB_POOL_MIN_CONN = int(os.getenv('DB_POOL_MIN_CONN', '2'))
+    DB_POOL_MAX_CONN = int(os.getenv('DB_POOL_MAX_CONN', '10'))
+    CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME', '')
+    CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY', '')
+    CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET', '')
     @classmethod
     def validate(cls):
-        missing = [k for k, v in cls.__dict__.items() if not k.startswith('_') and v is None]
-        if missing:
-            logger.warning(f"Missing config vars: {', '.join(missing)}")
+        """Validate that required configuration is present"""
+        if not cls.DATABASE_URL:
+            raise ValueError("DATABASE_URL must be set")
+        if not cls.REDIS_URL:
+            raise ValueError("REDIS_URL must be set")
+
+        # Warn about optional Cloudinary config
+        if not cls.CLOUDINARY_CLOUD_NAME:
+            print("⚠ Warning: CLOUDINARY_CLOUD_NAME not set - asset uploads will be disabled")
+
+        print("✓ Configuration validated successfully")
