@@ -1,117 +1,268 @@
 {% extends "base.html" %}
 
-{% block title %}Crawl Progress{% endblock %}
+{% block title %}Crawl Progress - {{ domain }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .status-badge {
+        font-size: 1.2rem;
+        padding: 10px 20px;
+        border-radius: 50px;
+    }
+
+    .progress {
+        height: 40px;
+        border-radius: 20px;
+        background-color: rgba(0,0,0,0.1);
+    }
+
+    .progress-bar {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 40px;
+        transition: width 0.5s ease;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    .stats-card h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .stats-card p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .spinner-wrapper {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .log-entry {
+        padding: 10px;
+        border-left: 4px solid #667eea;
+        margin-bottom: 10px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 5px;
+    }
+
+    .log-timestamp {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-    <h1>Crawling: {{ domain }}</h1>
+<div class="progress-container">
+    <div class="card">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <h2 class="mb-3">
+                    <i class="bi bi-activity"></i> Crawling Progress
+                </h2>
+                <h4 class="text-muted">{{ domain }}</h4>
+                <span class="badge status-badge bg-primary" id="statusBadge">
+                    <i class="bi bi-hourglass-split"></i> Initializing
+                </span>
+            </div>
 
-    <div style="margin: 30px 0;">
-        <div style="background: #f5f5f5; border-radius: 10px; padding: 3px;">
-            <div id="progressBar" style="
-                width: 0%;
-                height: 30px;
-                background: linear-gradient(90deg, #4CAF50, #45a049);
-                border-radius: 8px;
-                transition: width 0.5s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: bold;
-            ">
-                <span id="progressText">0%</span>
+            <div class="mb-4">
+                <div class="progress">
+                    <div
+                        class="progress-bar progress-bar-striped progress-bar-animated"
+                        role="progressbar"
+                        id="progressBar"
+                        style="width: 0%"
+                        aria-valuenow="0"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                    >
+                        0%
+                    </div>
+                </div>
+            </div>
+
+            <div class="row text-center mb-4">
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h3 id="pagesCount">0</h3>
+                        <p><i class="bi bi-file-earmark-text"></i> Pages Crawled</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h3 id="assetsCount">0</h3>
+                        <p><i class="bi bi-images"></i> Assets Found</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="completionMessage" class="alert alert-success d-none" role="alert">
+                <h4 class="alert-heading">
+                    <i class="bi bi-check-circle"></i> Crawl Completed!
+                </h4>
+                <p>The website has been successfully crawled.</p>
+                <hr>
+                <a href="/dashboard?domain={{ domain }}" class="btn btn-success">
+                    <i class="bi bi-bar-chart"></i> View Dashboard
+                </a>
+            </div>
+
+            <div id="errorMessage" class="alert alert-danger d-none" role="alert">
+                <h4 class="alert-heading">
+                    <i class="bi bi-x-circle"></i> Crawl Failed
+                </h4>
+                <p id="errorText">An error occurred during crawling.</p>
+            </div>
+
+            <div class="text-center">
+                <div class="spinner-wrapper" id="spinnerWrapper">
+                    <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Crawling in progress...</p>
+                </div>
             </div>
         </div>
     </div>
-
-    <div style="text-align: center; margin: 20px 0;">
-        <p id="statusText" style="font-size: 18px; color: #666;">Initializing...</p>
-    </div>
-
-    <div style="margin-top: 30px; text-align: center;">
-        <a href="/dashboard?domain={{ domain }}" style="
-            display: inline-block;
-            padding: 12px 30px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 16px;
-        ">View Dashboard</a>
-    </div>
-
-    <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
-        <h3>Progress Log</h3>
-        <div id="logContainer" style="
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 14px;
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        "></div>
-    </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
+$(document).ready(function() {
     const domain = "{{ domain }}";
-    let progressInterval;
-    let logMessages = [];
+    let pollInterval;
+    let consecutiveErrors = 0;
 
     function updateProgress() {
-        fetch(`/get_progress?domain=${encodeURIComponent(domain)}`)
-            .then(response => response.json())
-            .then(data => {
+        $.ajax({
+            url: '/get_progress',
+            type: 'GET',
+            data: { domain: domain },
+            dataType: 'json',
+            success: function(data) {
+                consecutiveErrors = 0;
+
                 const progress = Math.min(data.progress || 0, 100);
-                const progressBar = document.getElementById('progressBar');
-                const progressText = document.getElementById('progressText');
-                const statusText = document.getElementById('statusText');
+                const status = data.status || 'running';
 
-                progressBar.style.width = progress + '%';
-                progressText.textContent = progress.toFixed(1) + '%';
+                // Update progress bar
+                $('#progressBar')
+                    .css('width', progress + '%')
+                    .attr('aria-valuenow', progress)
+                    .text(progress.toFixed(1) + '%');
 
-                if (progress >= 100) {
-                    statusText.textContent = 'Crawl completed!';
-                    statusText.style.color = '#4CAF50';
-                    clearInterval(progressInterval);
-                    addLog('Crawl completed successfully');
-                } else if (progress > 0) {
-                    statusText.textContent = 'Crawling in progress...';
-                    statusText.style.color = '#007bff';
-                } else {
-                    statusText.textContent = 'Starting crawl...';
+                // Update status badge
+                updateStatusBadge(status);
+
+                // Check if completed
+                if (status === 'completed' || progress >= 100) {
+                    handleCompletion();
+                } else if (status === 'failed') {
+                    handleError('Crawl failed. Please check the logs.');
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching progress:', error);
-                addLog('Error: ' + error.message);
-            });
+            },
+            error: function(xhr, status, error) {
+                consecutiveErrors++;
+                console.error('Progress check failed:', error);
+
+                if (consecutiveErrors > 5) {
+                    handleError('Connection lost. Please refresh the page.');
+                    clearInterval(pollInterval);
+                }
+            }
+        });
     }
 
-    function addLog(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        logMessages.unshift(`[${timestamp}] ${message}`);
+    function updateStatusBadge(status) {
+        const $badge = $('#statusBadge');
+        $badge.removeClass('bg-primary bg-success bg-danger bg-warning');
 
-        // Keep only last 50 messages
-        if (logMessages.length > 50) {
-            logMessages = logMessages.slice(0, 50);
+        switch(status) {
+            case 'running':
+                $badge.addClass('bg-primary')
+                      .html('<i class="bi bi-arrow-repeat"></i> Crawling');
+                break;
+            case 'completed':
+                $badge.addClass('bg-success')
+                      .html('<i class="bi bi-check-circle"></i> Completed');
+                break;
+            case 'failed':
+                $badge.addClass('bg-danger')
+                      .html('<i class="bi bi-x-circle"></i> Failed');
+                break;
+            default:
+                $badge.addClass('bg-warning')
+                      .html('<i class="bi bi-hourglass-split"></i> ' + status);
         }
-
-        const logContainer = document.getElementById('logContainer');
-        logContainer.innerHTML = logMessages.join('<br>');
     }
 
-    // Start progress updates
-    addLog('Progress tracking started');
-    updateProgress();
-    progressInterval = setInterval(updateProgress, 2000);
+    function handleCompletion() {
+        clearInterval(pollInterval);
+        $('#spinnerWrapper').addClass('d-none');
+        $('#completionMessage').removeClass('d-none');
+        $('#progressBar').removeClass('progress-bar-animated');
 
-    // Stop updates when page is closed
-    window.addEventListener('beforeunload', () => {
-        clearInterval(progressInterval);
+        // Fetch final stats
+        fetchDashboardStats();
+    }
+
+    function handleError(message) {
+        clearInterval(pollInterval);
+        $('#spinnerWrapper').addClass('d-none');
+        $('#errorMessage').removeClass('d-none');
+        $('#errorText').text(message);
+        $('#progressBar')
+            .removeClass('progress-bar-animated')
+            .addClass('bg-danger');
+    }
+
+    function fetchDashboardStats() {
+        $.ajax({
+            url: '/dashboard',
+            type: 'GET',
+            data: { domain: domain },
+            success: function(html) {
+                // Extract stats from dashboard HTML
+                const $html = $(html);
+                const pages = $html.find('[data-pages]').attr('data-pages') || '0';
+                const assets = $html.find('[data-assets]').attr('data-assets') || '0';
+
+                $('#pagesCount').text(pages);
+                $('#assetsCount').text(assets);
+            },
+            error: function() {
+                console.warn('Could not fetch dashboard stats');
+            }
+        });
+    }
+
+    // Start polling
+    updateProgress();
+    pollInterval = setInterval(updateProgress, 2000);
+
+    // Cleanup on page unload
+    $(window).on('beforeunload', function() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+        }
     });
+});
 </script>
 {% endblock %}
